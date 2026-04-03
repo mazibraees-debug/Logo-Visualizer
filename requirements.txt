@@ -1,0 +1,6 @@
+Flask
+Pillow
+gunicorn
+Werkzeug
+openpyxl
+pandas

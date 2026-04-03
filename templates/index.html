@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Logo Visualizer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<header>
+    <h1>🎨 AI Logo Visualizer</h1>
+    <p class="subtitle">Upload a product image, select your item code, then place your logo within the print area</p>
+</header>
+
+<div class="container">
+
+    <!-- Controls Panel -->
+    <div class="controls-panel">
+
+        <div class="control-group">
+            <label>1. Upload Product Image</label>
+            <div class="upload-box" id="product-upload-box" onclick="document.getElementById('productInput').click()">
+                <span id="product-upload-label">Click to upload product image</span>
+                <input type="file" id="productInput" accept="image/*" onchange="uploadFile(this,'product')" hidden>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>2. Select Item Code</label>
+            <input type="text" id="searchInput" placeholder="Search by item code or name..." oninput="filterProducts()">
+            <div id="product-dropdown" class="dropdown hidden"></div>
+            <div id="selected-product" class="selected-product hidden">
+                <span id="selected-label"></span>
+                <button onclick="clearProduct()">✕</button>
+            </div>
+            <div id="print-area-info" class="print-area-info hidden">
+                📐 Max Print Area: <strong id="print-area-label"></strong>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>3. Upload Logo</label>
+            <div class="upload-box" id="logo-upload-box" onclick="document.getElementById('logoInput').click()">
+                <span id="logo-upload-label">Click to upload logo (white bg removed)</span>
+                <input type="file" id="logoInput" accept="image/*" onchange="uploadFile(this,'logo')" hidden>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Logo Size: <span id="size-value">150</span>px</label>
+            <input type="range" id="sizeRange" min="20" max="500" value="150" oninput="updateSize(this.value)">
+        </div>
+
+        <div class="control-group">
+            <label>Logo Opacity: <span id="opacity-value">100</span>%</label>
+            <input type="range" id="opacityRange" min="10" max="100" value="100" oninput="updateOpacity(this.value)">
+        </div>
+
+        <div class="button-group">
+            <button class="btn-primary" onclick="downloadImage()">⬇ Download Image</button>
+            <button class="btn-secondary" onclick="resetCanvas()">🔄 Reset</button>
+        </div>
+
+        <div class="info-box">
+            <p>💡 <strong>Tip:</strong> The blue rectangle shows the exact print area from your product data. The logo is constrained within it.</p>
+        </div>
+
+    </div>
+
+    <!-- Canvas Area -->
+    <div class="canvas-area">
+        <div class="canvas-wrapper">
+            <canvas id="canvas" width="600" height="600"></canvas>
+            <div id="canvas-placeholder">
+                <span>Upload a product image to begin</span>
+            </div>
+        </div>
+        <div id="status-bar" class="status-bar">Ready</div>
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/products.json') }}" type="application/json" id="productsData"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
