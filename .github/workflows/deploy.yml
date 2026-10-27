@@ -2,38 +2,52 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  build-and-deploy:
+  lint-and-test:
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
 
-    - name: Run tests
-      run: |
-        # Add test commands here if you have tests
-        echo "No tests defined"
+      - name: Lint with ruff
+        run: ruff check .
 
-    - name: Deploy to Vercel
-      env:
-        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      run: |
-        npm install -g vercel
-        vercel --prod --token $VERCEL_TOKEN
+      - name: Validate JSON files
+        run: |
+          python -c "import json; json.load(open('static/js/products.json')); print('products.json is valid')"
+
+      - name: Run tests
+        run: pytest --cov=logo_visualizer --cov-report=term-missing
+
+  deploy:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          npm install -g vercel
+          vercel --prod --token $VERCEL_TOKEN --yes

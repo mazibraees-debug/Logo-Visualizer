@@ -1,5 +1,30 @@
-# Ignore virtual environment folder
+# Virtual environments
 venv/
+.venv/
 
-# Ignore Python cache files
+# Python cache
 __pycache__/
+*.py[cod]
+*.egg-info/
+
+# Testing / linting
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Environment
+.env
+.env.local
+
+# Uploads
+uploads/
+/tmp/uploads
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

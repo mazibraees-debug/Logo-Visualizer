@@ -21,12 +21,28 @@ const CANVAS_SIZE = 600;
 let allProducts = [];
 
 fetch('/api/products')
-    .then(r => r.json())
+    .then(r => {
+        if (!r.ok) throw new Error('Could not load products');
+        return r.json();
+    })
     .then(data => {
         allProducts = data;
+    })
+    .catch(err => {
+        showError(err.message || 'Could not load products');
     });
 
 // ===== PRODUCT SEARCH =====
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+
 function filterProducts() {
     const q = document.getElementById('searchInput').value.trim().toLowerCase();
     const dropdown = document.getElementById('product-dropdown');
@@ -50,9 +66,9 @@ function filterProducts() {
     }
 
     dropdown.innerHTML = results.map(p => `
-        <div class="dropdown-item" onclick="selectProduct('${p.ItemCode}')">
-            <div class="item-code">${p.ItemCode}</div>
-            <div class="item-name">${p.ItemName}</div>
+        <div class="dropdown-item" onclick="selectProduct('${escapeHtml(p.ItemCode)}')">
+            <div class="item-code">${escapeHtml(p.ItemCode)}</div>
+            <div class="item-name">${escapeHtml(p.ItemName)}</div>
         </div>
     `).join('');
 
@@ -63,8 +79,11 @@ function selectProduct(itemCode) {
     document.getElementById('product-dropdown').classList.add('hidden');
     document.getElementById('searchInput').value = '';
 
-    fetch(`/api/product/${itemCode}`)
-        .then(r => r.json())
+    fetch(`/api/product/${encodeURIComponent(itemCode)}`)
+        .then(r => {
+            if (!r.ok) throw new Error('Product not found');
+            return r.json();
+        })
         .then(product => {
             const label = document.getElementById('selected-label');
             label.textContent = `${product.ItemCode} — ${product.ItemName}`;
@@ -84,6 +103,10 @@ function selectProduct(itemCode) {
             }
 
             render();
+        })
+        .catch(err => {
+            setStatus(err.message || 'Could not load product');
+            showError(err.message || 'Could not load product');
         });
 }
 
@@ -253,13 +276,25 @@ async function uploadFile(input, type) {
     if (!input.files[0]) return;
 
     setStatus('Uploading...');
+    showError('');
 
     const formData = new FormData();
     formData.append('file', input.files[0]);
     formData.append('type', type);
 
-    const res = await fetch('/upload', { method: 'POST', body: formData });
-    const data = await res.json();
+    let data;
+    try {
+        const res = await fetch('/upload', { method: 'POST', body: formData });
+        data = await res.json();
+        if (!res.ok) {
+            throw new Error(data.error || 'Upload failed');
+        }
+    } catch (err) {
+        setStatus('Upload failed');
+        showError(err.message || 'Upload failed');
+        input.value = '';
+        return;
+    }
 
     if (type === 'product') {
         productImg = new Image();
@@ -269,7 +304,12 @@ async function uploadFile(input, type) {
             document.getElementById('product-upload-box').classList.add('has-file');
             document.getElementById('product-upload-label').textContent = '✓ Product image loaded';
             setStatus('Product image loaded');
+            updateDownloadState();
             render();
+        };
+        productImg.onerror = () => {
+            setStatus('Failed to load image');
+            showError('Could not load the uploaded image');
         };
         productImg.src = data.url;
     } else {
@@ -279,7 +319,6 @@ async function uploadFile(input, type) {
             document.getElementById('logo-upload-box').classList.add('has-file');
             document.getElementById('logo-upload-label').textContent = '✓ Logo loaded';
 
-            // Place logo in center of print area (or canvas center)
             if (printArea) {
                 logoData.x = printArea.x + Math.round((printArea.w - logoData.size) / 2);
                 logoData.y = printArea.y + Math.round((printArea.h - logoData.size) / 2);
@@ -287,12 +326,36 @@ async function uploadFile(input, type) {
                 logoData.x = Math.round((CANVAS_SIZE - logoData.size) / 2);
                 logoData.y = Math.round((CANVAS_SIZE - logoData.size) / 2);
             }
+            clampLogoToPrintArea();
 
             setStatus('Logo loaded — drag it onto the product');
+            updateDownloadState();
             render();
+        };
+        logoImg.onerror = () => {
+            setStatus('Failed to load logo');
+            showError('Could not load the uploaded logo');
         };
         logoImg.src = data.url;
     }
+}
+
+function updateDownloadState() {
+    const btn = document.getElementById('downloadBtn');
+    const enabled = productLoaded && logoLoaded;
+    btn.disabled = !enabled;
+    btn.setAttribute('aria-disabled', String(!enabled));
+}
+
+function showError(message) {
+    const banner = document.getElementById('error-banner');
+    if (!message) {
+        banner.classList.add('hidden');
+        banner.textContent = '';
+        return;
+    }
+    banner.textContent = message;
+    banner.classList.remove('hidden');
 }
 
 // ===== SIZE & OPACITY =====
@@ -413,6 +476,7 @@ function resetCanvas() {
     document.getElementById('opacityRange').value = 100;
     document.getElementById('opacity-value').textContent = 100;
 
+    updateDownloadState();
     render();
     setStatus('Reset — ready for a new product');
 }

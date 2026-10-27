@@ -1,53 +1,132 @@
 # AI Logo Visualizer
 
-A Flask web app that lets you upload a product image, select an item code from your product catalog, and visually place a logo within the **exact max print area** defined in your Excel data.
+[![CI](https://github.com/mazibraees-debug/Logo-Visualizer/actions/workflows/deploy.yml/badge.svg)](https://github.com/mazibraees-debug/Logo-Visualizer/actions/workflows/deploy.yml)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+A Flask web application that lets you upload a product image, select an item code
+from a product catalog, and visually place a logo **within the exact maximum print
+area** defined for that product.
 
 ## Features
 
-- 🔍 **Search products** by item code or name (from `main.xlsx`)
-- 📐 **Exact print area** — the blue dashed rectangle matches `MaxPrintAreaDefault` for each product
+- 🔍 **Search products** by item code or name (from `products.json`)
+- 📐 **Exact print area** — the dashed rectangle matches `MaxPrintAreaDefault`
 - 🖼️ **Logo constrained** to the print area — cannot be dragged outside
-- 🎨 **White background removal** from logos automatically
+- 🎨 **Automatic white-background removal** from logos
 - 🔧 **Logo size & opacity** controls
 - 💾 **Download** the final mockup (without print area overlay)
-- 📱 **Touch support** for mobile dragging
+- 📱 **Touch/mouse support** for dragging
+- ✅ **Tested** with pytest, linted with ruff
 
-## Setup
+## Tech stack
+
+- **Backend:** Flask, Pillow, Gunicorn
+- **Frontend:** Vanilla JavaScript (Canvas API), CSS
+- **Tooling:** pytest, ruff, pre-commit, Docker
+- **Deployment:** Vercel / Docker / any WSGI host
+
+## Project structure
+
+```
+Logo-Visualizer/
+├── app.py                  # WSGI entry point
+├── logo_visualizer/        # Application package
+│   ├── __init__.py         # App factory
+│   ├── config.py           # Environment-based configuration
+│   ├── routes/             # Blueprints (main, api, uploads)
+│   ├── services/           # Business logic (products, images)
+│   └── utils/              # Helpers (file handling)
+├── static/                 # CSS, JS, product catalog
+├── templates/              # Jinja2 templates
+├── tests/                  # pytest suite
+├── Dockerfile
+├── docker-compose.yml
+└── requirements*.txt
+```
+
+## Getting started
+
+### Prerequisites
+
+- Python 3.11+
+
+### Installation
 
 ```bash
-# 1. Install dependencies
-pip install -r requirements.txt
+git clone https://github.com/mazibraees-debug/Logo-Visualizer.git
+cd Logo-Visualizer
 
-# 2. Run the app
+python -m venv venv
+# Windows
+venv\Scripts\activate
+# macOS/Linux
+source venv/bin/activate
+
+pip install -r requirements-dev.txt
+```
+
+### Run
+
+```bash
 python app.py
 ```
 
-Then open http://localhost:5000 in your browser.
+Open http://localhost:5000 in your browser.
 
-## How It Works
+### Configuration
+
+Copy `.env.example` to `.env` and adjust values:
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Description | Default |
+|---|---|---|
+| `APP_ENV` | `development` / `production` / `testing` | `development` |
+| `SECRET_KEY` | Flask secret key | `change-me-in-production` |
+| `UPLOAD_FOLDER` | Writable upload directory | `/tmp/uploads` |
+| `MAX_UPLOAD_BYTES` | Max upload size in bytes | `10485760` |
+
+## Testing & linting
+
+```bash
+pytest
+ruff check .
+```
+
+## Docker
+
+```bash
+docker compose up --build
+```
+
+Then open http://localhost:5000.
+
+## Deployment (Vercel)
+
+The repository includes a `vercel.json`. Set the `VERCEL_TOKEN` secret in
+GitHub Actions (or run `vercel --prod` locally) to deploy.
+
+## How it works
 
 1. **Upload a product image** (e.g. a bag, bottle, t-shirt)
-2. **Search & select the item code** from the catalog — the print area rectangle appears automatically
-3. **Upload your logo** — white background is stripped
+2. **Search & select the item code** from the catalog — the print area rectangle appears
+3. **Upload your logo** — white background is stripped automatically
 4. **Drag the logo** within the blue print area rectangle
 5. **Download** the mockup
 
-## Project Structure
+## API
 
-```
-logo_visualizer/
-├── app.py                  # Flask backend
-├── requirements.txt
-├── templates/
-│   └── index.html          # Main UI
-└── static/
-    ├── css/style.css       # Styles
-    ├── js/
-    │   ├── script.js       # Canvas logic
-    │   └── products.json   # Product catalog (from Excel)
-    └── uploads/            # Uploaded images (auto-created)
-```
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/products` | Full product catalog |
+| GET | `/api/product/<item_code>` | Single product with parsed print area |
+| GET | `/api/health` | Health check |
+| POST | `/upload` | Upload product/logo image (`multipart/form-data`) |
+| GET | `/uploads/<filename>` | Serve uploaded file |
 
-## Print Area Logic
+## License
 
-The `MaxPrintAreaDefault` column in the Excel (e.g. `150 x 150 mm`) is parsed and proportionally scaled to fit on the 600×600 canvas. The print area is centered on the product image. The logo is **hard-constrained** so it cannot be placed outside this rectangle.
+MIT — see [LICENSE](LICENSE).

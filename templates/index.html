@@ -3,62 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AILogosVisualizer</title>
+    <title>AI Logo Visualizer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
 </head>
 <body>
 
 <header>
-    <h1>🎨 AI Logo Visualizer tool</h1>
+    <h1>🎨 AI Logo Visualizer</h1>
     <p class="subtitle">Upload a product image, select your item code, then place your logo within the print area</p>
 </header>
 
 <div class="container">
 
     <!-- Controls Panel -->
-    <div class="controls-panel">
+    <aside class="controls-panel" aria-label="Controls">
 
         <div class="control-group">
-            <label>1. Upload Product Image</label>
-            <div class="upload-box" id="product-upload-box" onclick="document.getElementById('productInput').click()">
+            <label for="productInput">1. Upload Product Image</label>
+            <div class="upload-box" id="product-upload-box" role="button" tabindex="0"
+                 onclick="document.getElementById('productInput').click()"
+                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('productInput').click()}">
                 <span id="product-upload-label">Click to upload product image</span>
-                <input type="file" id="productInput" accept="image/*" onchange="uploadFile(this,'product')" hidden>
+                <input type="file" id="productInput" accept="image/*"
+                       onchange="uploadFile(this,'product')" hidden>
             </div>
         </div>
 
         <div class="control-group">
-            <label>2. Select Item Code</label>
-            <input type="text" id="searchInput" placeholder="Search by item code or name..." oninput="filterProducts()">
-            <div id="product-dropdown" class="dropdown hidden"></div>
+            <label for="searchInput">2. Select Item Code</label>
+            <input type="text" id="searchInput" placeholder="Search by item code or name..."
+                   oninput="filterProducts()" autocomplete="off" aria-autocomplete="list">
+            <div id="product-dropdown" class="dropdown hidden" role="listbox"></div>
             <div id="selected-product" class="selected-product hidden">
                 <span id="selected-label"></span>
-                <button onclick="clearProduct()">✕</button>
+                <button onclick="clearProduct()" aria-label="Clear selected product">✕</button>
             </div>
-            <div id="print-area-info" class="print-area-info hidden">
+            <div id="print-area-info" class="print-area-info hidden" role="status">
                 📐 Max Print Area: <strong id="print-area-label"></strong>
             </div>
         </div>
 
         <div class="control-group">
-            <label>3. Upload Logo</label>
-            <div class="upload-box" id="logo-upload-box" onclick="document.getElementById('logoInput').click()">
+            <label for="logoInput">3. Upload Logo</label>
+            <div class="upload-box" id="logo-upload-box" role="button" tabindex="0"
+                 onclick="document.getElementById('logoInput').click()"
+                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('logoInput').click()}">
                 <span id="logo-upload-label">Click to upload logo (white bg removed)</span>
-                <input type="file" id="logoInput" accept="image/*" onchange="uploadFile(this,'logo')" hidden>
+                <input type="file" id="logoInput" accept="image/*"
+                       onchange="uploadFile(this,'logo')" hidden>
             </div>
         </div>
 
         <div class="control-group">
-            <label>Logo Size: <span id="size-value">150</span>px</label>
-            <input type="range" id="sizeRange" min="20" max="500" value="150" oninput="updateSize(this.value)">
+            <label for="sizeRange">Logo Size: <span id="size-value">150</span>px</label>
+            <input type="range" id="sizeRange" min="20" max="500" value="150"
+                   oninput="updateSize(this.value)" aria-valuemin="20" aria-valuemax="500"
+                   aria-valuenow="150">
         </div>
 
         <div class="control-group">
-            <label>Logo Opacity: <span id="opacity-value">100</span>%</label>
-            <input type="range" id="opacityRange" min="10" max="100" value="100" oninput="updateOpacity(this.value)">
+            <label for="opacityRange">Logo Opacity: <span id="opacity-value">100</span>%</label>
+            <input type="range" id="opacityRange" min="10" max="100" value="100"
+                   oninput="updateOpacity(this.value)" aria-valuemin="10" aria-valuemax="100"
+                   aria-valuenow="100">
         </div>
 
         <div class="button-group">
-            <button class="btn-primary" onclick="downloadImage()">⬇ Download Image</button>
+            <button class="btn-primary" onclick="downloadImage()" id="downloadBtn"
+                    disabled aria-disabled="true">⬇ Download Image</button>
             <button class="btn-secondary" onclick="resetCanvas()">🔄 Reset</button>
         </div>
 
@@ -66,22 +79,24 @@
             <p>💡 <strong>Tip:</strong> The blue rectangle shows the exact print area from your product data. The logo is constrained within it.</p>
         </div>
 
-    </div>
+        <div id="error-banner" class="error-banner hidden" role="alert"></div>
+
+    </aside>
 
     <!-- Canvas Area -->
     <div class="canvas-area">
         <div class="canvas-wrapper">
-            <canvas id="canvas" width="600" height="600"></canvas>
+            <canvas id="canvas" width="600" height="600"
+                    aria-label="Product mockup preview"></canvas>
             <div id="canvas-placeholder">
                 <span>Upload a product image to begin</span>
             </div>
         </div>
-        <div id="status-bar" class="status-bar">Ready</div>
+        <div id="status-bar" class="status-bar" role="status">Ready</div>
     </div>
 
 </div>
 
-<script src="{{ url_for('static', filename='js/products.json') }}" type="application/json" id="productsData"></script>
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
