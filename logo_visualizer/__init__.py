@@ -10,7 +10,6 @@ from flask import Flask
 
 from .config import get_config
 from .routes import register_blueprints
-from .services.products import load_products
 
 
 def create_app(config_name: str | None = None) -> Flask:
@@ -40,10 +39,6 @@ def create_app(config_name: str | None = None) -> Flask:
         level=logging.INFO if not app.config.get("DEBUG") else logging.DEBUG,
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
-
-    # Load product catalog once.
-    app.config["PRODUCTS"] = load_products(app.config["PRODUCTS_JSON"])
-    app.config["PRODUCT_MAP"] = {p["ItemCode"]: p for p in app.config["PRODUCTS"]}
 
     register_blueprints(app)
     register_error_handlers(app)

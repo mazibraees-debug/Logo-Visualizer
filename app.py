@@ -18,9 +18,5 @@ from logo_visualizer import create_app
 
 app = create_app(os.environ.get("APP_ENV") or os.environ.get("FLASK_ENV"))
 
-# Backwards-compatible aliases (used by older smoke tests / integrations).
-PRODUCTS = app.config["PRODUCTS"]
-PRODUCT_MAP = app.config["PRODUCT_MAP"]
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=app.config.get("DEBUG", False))

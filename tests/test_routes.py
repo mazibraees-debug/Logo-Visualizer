@@ -18,30 +18,6 @@ def test_health(client):
     assert resp.status_code == 200
     data = resp.get_json()
     assert data["status"] == "ok"
-    assert data["products"] > 0
-
-
-def test_products(client):
-    resp = client.get("/api/products")
-    assert resp.status_code == 200
-    data = resp.get_json()
-    assert isinstance(data, list)
-    assert len(data) > 0
-    assert "ItemCode" in data[0]
-
-
-def test_product_found(client):
-    products = client.get("/api/products").get_json()
-    code = products[0]["ItemCode"]
-    resp = client.get(f"/api/product/{code}")
-    assert resp.status_code == 200
-    data = resp.get_json()
-    assert data["ItemCode"] == code
-
-
-def test_product_not_found(client):
-    resp = client.get("/api/product/DOES-NOT-EXIST")
-    assert resp.status_code == 404
 
 
 def test_upload_no_file(client):

@@ -28,7 +28,6 @@ class Config:
     UPLOAD_FOLDER = Path(os.environ.get("UPLOAD_FOLDER", "/tmp/uploads"))
     MAX_CONTENT_LENGTH = int(os.environ.get("MAX_UPLOAD_BYTES", 10 * 1024 * 1024))
     ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp", "bmp"}
-    PRODUCTS_JSON = BASE_DIR / "static" / "js" / "products.json"
 
     # Security headers
     SECURITY_HEADERS = True

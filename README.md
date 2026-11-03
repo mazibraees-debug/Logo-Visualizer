@@ -4,20 +4,18 @@
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-A Flask web application that lets you upload a product image, select an item code
-from a product catalog, and visually place a logo **within the exact maximum print
-area** defined for that product.
+A Flask web application that lets you upload any product image, upload a logo, and visually place it **with exact size and exact position** while strictly locking it **within the product boundary or custom print area**.
 
 ## Features
 
-- 🔍 **Search products** by item code or name (from `products.json`)
-- 📐 **Exact print area** — the dashed rectangle matches `MaxPrintAreaDefault`
-- 🖼️ **Logo constrained** to the print area — cannot be dragged outside
-- 🎨 **Automatic white-background removal** from logos
-- 🔧 **Logo size & opacity** controls
-- 💾 **Download** the final mockup (without print area overlay)
-- 📱 **Touch/mouse support** for dragging
-- ✅ **Tested** with pytest, linted with ruff
+- 👕 **Universal Product Support** — upload any t-shirt, hoodie, mug, bottle, or packaging with automatic aspect-ratio preservation (zero distortion).
+- 📐 **Strict Boundary Protection** — choose between *Full Product* or *Custom Drawn Area* (drag rectangle on product). The logo cannot be dragged or resized outside the boundary.
+- 🎯 **Exact Positioning & Sizing** — live numeric inputs for X, Y, Width, and Height (px), plus quick alignment shortcuts (Chest, Center, Top, Fit).
+- 🔄 **Interactive Handles & Controls** — 4 corner resize handles, mouse/touch dragging, rotation slider, and opacity slider.
+- 🎨 **Automatic White-Background Removal** — uploaded logos are automatically cleaned with transparency.
+- ✨ **Realistic Mockup Visualization** — *Multiply* blend mode for realistic fabric/surface print realism, plus one-click *Clean Preview* to hide guides and inspect the final product.
+- 💾 **High-Resolution Export** — download the clean, composite mockup at the product's original resolution.
+- ✅ **Tested & Linted** — pytest suite and ruff checks.
 
 ## Tech stack
 
@@ -28,24 +26,25 @@ area** defined for that product.
 
 ## Project structure
 
-```
+`
 Logo-Visualizer/
 ├── app.py                  # WSGI entry point
 ├── logo_visualizer/        # Application package
 │   ├── __init__.py         # App factory
 │   ├── config.py           # Environment-based configuration
 │   ├── routes/             # Blueprints (main, api, uploads)
-│   ├── services/           # Business logic (products, images)
+│   ├── services/           # Business logic (images)
 │   └── utils/              # Helpers (file handling)
-├── static/                 # CSS, JS, product catalog
+├── static/                 # CSS & JS
 ├── templates/              # Jinja2 templates
 ├── tests/                  # pytest suite
 ├── Dockerfile
 ├── docker-compose.yml
 └── requirements*.txt
-```
+`
 
 ## Getting started
+
 
 ### Prerequisites
 

@@ -11,7 +11,7 @@
 
 <header>
     <h1>🎨 AI Logo Visualizer</h1>
-    <p class="subtitle">Upload a product image, select your item code, then place your logo within the print area</p>
+    <p class="subtitle">Upload any product & logo, place at the exact spot & size with strict boundaries, and preview your mockup</p>
 </header>
 
 <div class="container">
@@ -19,6 +19,7 @@
     <!-- Controls Panel -->
     <aside class="controls-panel" aria-label="Controls">
 
+        <!-- 1. Product Image -->
         <div class="control-group">
             <label for="productInput">1. Upload Product Image</label>
             <div class="upload-box" id="product-upload-box" role="button" tabindex="0"
@@ -28,24 +29,12 @@
                 <input type="file" id="productInput" accept="image/*"
                        onchange="uploadFile(this,'product')" hidden>
             </div>
+            <div id="product-dimensions-badge" class="dimensions-badge hidden"></div>
         </div>
 
+        <!-- 2. Logo Upload -->
         <div class="control-group">
-            <label for="searchInput">2. Select Item Code</label>
-            <input type="text" id="searchInput" placeholder="Search by item code or name..."
-                   oninput="filterProducts()" autocomplete="off" aria-autocomplete="list">
-            <div id="product-dropdown" class="dropdown hidden" role="listbox"></div>
-            <div id="selected-product" class="selected-product hidden">
-                <span id="selected-label"></span>
-                <button onclick="clearProduct()" aria-label="Clear selected product">✕</button>
-            </div>
-            <div id="print-area-info" class="print-area-info hidden" role="status">
-                📐 Max Print Area: <strong id="print-area-label"></strong>
-            </div>
-        </div>
-
-        <div class="control-group">
-            <label for="logoInput">3. Upload Logo</label>
+            <label for="logoInput">2. Upload Logo</label>
             <div class="upload-box" id="logo-upload-box" role="button" tabindex="0"
                  onclick="document.getElementById('logoInput').click()"
                  onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('logoInput').click()}">
@@ -55,28 +44,118 @@
             </div>
         </div>
 
-        <div class="control-group">
-            <label for="sizeRange">Logo Size: <span id="size-value">150</span>px</label>
-            <input type="range" id="sizeRange" min="20" max="500" value="150"
-                   oninput="updateSize(this.value)" aria-valuemin="20" aria-valuemax="500"
-                   aria-valuenow="150">
+        <!-- 3. Boundary Controls (Logo bounds) -->
+        <div class="control-group" id="boundary-controls">
+            <label>Printable Boundary (Stay Inside)</label>
+            <div class="boundary-buttons">
+                <button type="button" class="btn-sub active" id="btn-bound-full" onclick="setBoundaryMode('full')">Full Product</button>
+                <button type="button" class="btn-sub" id="btn-bound-custom" onclick="startDrawCustomBoundary()">✏️ Draw Area</button>
+            </div>
+            <p class="field-hint" id="boundary-hint">Logo cannot be moved or resized outside the product boundary.</p>
         </div>
 
-        <div class="control-group">
-            <label for="opacityRange">Logo Opacity: <span id="opacity-value">100</span>%</label>
-            <input type="range" id="opacityRange" min="10" max="100" value="100"
-                   oninput="updateOpacity(this.value)" aria-valuemin="10" aria-valuemax="100"
-                   aria-valuenow="100">
+        <!-- 4. Exact Position & Quick Align -->
+        <div class="control-group" id="position-controls">
+            <label>Exact Position (Coordinates)</label>
+            <div class="coords-row">
+                <div class="input-with-label">
+                    <span>X:</span>
+                    <input type="number" id="posXInput" value="50" onchange="manualSetPosition()" min="0">
+                    <small>px</small>
+                </div>
+                <div class="input-with-label">
+                    <span>Y:</span>
+                    <input type="number" id="posYInput" value="50" onchange="manualSetPosition()" min="0">
+                    <small>px</small>
+                </div>
+            </div>
+
+            <label class="sub-label">Quick Alignment</label>
+            <div class="align-grid">
+                <button type="button" class="btn-align" onclick="quickAlign('top-left')" title="Top Left">↖</button>
+                <button type="button" class="btn-align" onclick="quickAlign('top-center')" title="Top Center">↑ Top</button>
+                <button type="button" class="btn-align" onclick="quickAlign('top-right')" title="Top Right">↗</button>
+                <button type="button" class="btn-align" onclick="quickAlign('mid-left')" title="Middle Left">← Left</button>
+                <button type="button" class="btn-align" onclick="quickAlign('center')" title="Dead Center">🎯 Center</button>
+                <button type="button" class="btn-align" onclick="quickAlign('mid-right')" title="Middle Right">Right →</button>
+                <button type="button" class="btn-align" onclick="quickAlign('chest')" title="Chest / Upper Center">👕 Chest</button>
+                <button type="button" class="btn-align" onclick="quickAlign('bottom-center')" title="Bottom Center">↓ Bottom</button>
+                <button type="button" class="btn-align" onclick="quickAlign('fit')" title="Fit Maximum">⛶ Fit</button>
+            </div>
         </div>
 
+        <!-- 5. Exact Size & Scale -->
+        <div class="control-group" id="size-controls">
+            <div class="group-title-row">
+                <label>Exact Size</label>
+                <label class="checkbox-inline">
+                    <input type="checkbox" id="lockAspectCheckbox" checked>
+                    <span>Lock Ratio</span>
+                </label>
+            </div>
+            <div class="coords-row">
+                <div class="input-with-label">
+                    <span>W:</span>
+                    <input type="number" id="sizeWInput" value="150" onchange="manualSetSize('w')" min="10">
+                    <small>px</small>
+                </div>
+                <div class="input-with-label">
+                    <span>H:</span>
+                    <input type="number" id="sizeHInput" value="150" onchange="manualSetSize('h')" min="10">
+                    <small>px</small>
+                </div>
+            </div>
+
+            <div class="slider-row">
+                <div class="slider-header">
+                    <span>Scale Slider:</span>
+                    <span id="size-value">150px</span>
+                </div>
+                <input type="range" id="sizeRange" min="20" max="600" value="150"
+                       oninput="updateSize(this.value)">
+            </div>
+        </div>
+
+        <!-- 6. Appearance & Realism -->
+        <div class="control-group">
+            <label>Appearance & Realism</label>
+            <div class="slider-row">
+                <div class="slider-header">
+                    <span>Rotation:</span>
+                    <span id="rotate-value">0°</span>
+                </div>
+                <div class="rotation-control">
+                    <input type="range" id="rotateRange" min="-180" max="180" value="0"
+                           oninput="updateRotation(this.value)">
+                    <button type="button" class="btn-sub-xs" onclick="resetRotation()" title="Reset to 0°">0°</button>
+                </div>
+            </div>
+
+            <div class="slider-row" style="margin-top: 10px;">
+                <div class="slider-header">
+                    <span>Opacity:</span>
+                    <span id="opacity-value">100%</span>
+                </div>
+                <input type="range" id="opacityRange" min="10" max="100" value="100"
+                       oninput="updateOpacity(this.value)">
+            </div>
+
+            <div class="blend-row" style="margin-top: 12px;">
+                <span>Blend Mode:</span>
+                <select id="blendModeSelect" onchange="updateBlendMode(this.value)">
+                    <option value="source-over">Normal</option>
+                    <option value="multiply">Multiply (Realistic Fabric Print)</option>
+                    <option value="overlay">Overlay</option>
+                    <option value="darken">Darken</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Actions -->
         <div class="button-group">
             <button class="btn-primary" onclick="downloadImage()" id="downloadBtn"
-                    disabled aria-disabled="true">⬇ Download Image</button>
-            <button class="btn-secondary" onclick="resetCanvas()">🔄 Reset</button>
-        </div>
-
-        <div class="info-box">
-            <p>💡 <strong>Tip:</strong> The blue rectangle shows the exact print area from your product data. The logo is constrained within it.</p>
+                    disabled aria-disabled="true">⬇ Download Final Mockup</button>
+            <button class="btn-secondary" onclick="resetCanvas()">🔄 Reset All</button>
         </div>
 
         <div id="error-banner" class="error-banner hidden" role="alert"></div>
@@ -85,11 +164,30 @@
 
     <!-- Canvas Area -->
     <div class="canvas-area">
-        <div class="canvas-wrapper">
+        <!-- Canvas Top Toolbar -->
+        <div class="canvas-toolbar">
+            <div class="toolbar-left">
+                <button type="button" class="tool-btn" id="toggleGuidesBtn" onclick="toggleGuides()">
+                    👁️ <span id="guides-text">Guides: ON</span>
+                </button>
+                <button type="button" class="tool-btn" id="previewModeBtn" onclick="togglePreviewMode()">
+                    ✨ Clean Preview
+                </button>
+            </div>
+            <div class="toolbar-right">
+                <span id="live-info-badge" class="info-badge">Upload images to begin</span>
+            </div>
+        </div>
+
+        <div class="canvas-wrapper" id="canvas-wrapper">
             <canvas id="canvas" width="600" height="600"
                     aria-label="Product mockup preview"></canvas>
             <div id="canvas-placeholder">
-                <span>Upload a product image to begin</span>
+                <div class="placeholder-content">
+                    <span class="placeholder-icon">👕</span>
+                    <p>Upload a product image to begin</p>
+                    <small>Supports any shirt, hoodie, cup, bottle, or packaging</small>
+                </div>
             </div>
         </div>
         <div id="status-bar" class="status-bar" role="status">Ready</div>
